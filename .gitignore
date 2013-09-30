@@ -5,9 +5,12 @@
 *.suo
 *.user
 *.sln.docstates
+*.csproj
+*.resx
 
 # Build results
 
+Properties/
 [Dd]ebug/
 [Rr]elease/
 x64/
