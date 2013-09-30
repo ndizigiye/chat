@@ -46,22 +46,31 @@ namespace WindowsFormsApplication2
         //listening server
         private void button1_Click(object sender, EventArgs e)
         {
+            
+            Thread listenerThread = new Thread(new ThreadStart(Listening));
+            listenerThread.Start();
+        }
+
+         void Listening()
+        {
             var listener = new TcpListener(IPAddress.Any, 9000);
             listener.Start();
-            SetText("Listening for a client ...");
-            tcp = listener.AcceptTcpClient();
-            if (tcp.Connected)
-            {
-                thread = new Thread(ReceiveData);
-                thread.Start();
-            }
+             SetText("Listening for clients");
+             tcp = listener.AcceptTcpClient();
+             if (tcp.Connected)
+                {
+                    SetText("client connected");
+                    thread = new Thread(ReceiveData);
+                    thread.Start();
+                }
+
         }
 
         //connecting client
         private void button2_Click(object sender, EventArgs e)
         {
             SetText("Connecting ...");
-            var a = IPAddress.Parse(textBox1.Text);
+            var a = IPAddress.Parse("127.0.0.1");
             tcp.Connect(a, 9000);
             thread = new Thread(ReceiveData);
             thread.Start();
@@ -80,36 +89,43 @@ namespace WindowsFormsApplication2
 
         private void ReceiveData()
         {
-            string message;
+            string message = "";
             int bytesRead;
-            var readbuffer = new byte[1024];
+            byte[] readbuffer = new byte[1];
 
             stream = tcp.GetStream();
             SetText("ready to receive data ...");
+            string substring = "";
 
-            while (true)
+            while (stream.CanRead)
             {
                 bytesRead = stream.Read(readbuffer, 0, readbuffer.Length);
-                message = Encoding.ASCII.GetString(readbuffer, 0, bytesRead);
 
-                switch (message)
+                if (readbuffer.Length == bytesRead)
                 {
-                    case "bye":
-                    {
-                        var bytesToSend = Encoding.ASCII.GetBytes("bye");
-                        stream.Write(bytesToSend, 0, bytesToSend.Length);
-                        SetText("Connection closed..");
-                        stream.Close();
-                        tcp.Close();
-                        break;
-                    }
-                    default:
-                        SetText(" >> " + message);
-                        stream.Close();
-                        break;
+                    message = Encoding.ASCII.GetString(readbuffer, 0, bytesRead);
                 }
-            }  
+
+                substring = substring + message;
+            
+
+            switch (substring)
+            {
+                case "bye":
+                {
+                    var bytesToSend = Encoding.ASCII.GetBytes("bye");
+                    stream.Write(bytesToSend, 0, bytesToSend.Length);
+                    SetText("Connection closed..");
+                    stream.Close();
+                    tcp.Close();
+                    break;
+                }
+                default:
+                SetText(message);
+                    break;
+            }
         }
+    }
 
         private void textBox2_TextChanged(object sender, EventArgs e)
         {
