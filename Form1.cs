@@ -1,21 +1,28 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace WindowsFormsApplication2
 {
-    delegate void SetTextCallBack(string message);
+    delegate void SetTextCallBack(string text);
 
     public partial class Form1 : Form
     {
         private Client _client;
         private Server _server;
 
+        public void SettingText(Object o,OnTextChanged e)
+        {
+            SetText(e.GetText());
+            Debug.WriteLine("event fired................");
+        }
+      
         public void SetText(string text)
         {
             if (richTextBox1.InvokeRequired)
             {
-                SetTextCallBack set = SetText;
-                Invoke(set, new object[] { text });
+                SetTextCallBack setText = SetText;
+                Invoke(setText, new object[] { text });
             }
 
             else

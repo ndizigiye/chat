@@ -9,8 +9,27 @@ using System.Threading;
 
 namespace WindowsFormsApplication2
 {
+    public delegate void OnTextChangedHandler(object source, OnTextChanged e);
+
+    public class OnTextChanged : EventArgs
+    {
+        private readonly string _text;
+
+        public OnTextChanged(string text)
+        {
+            this._text = text;
+        }
+
+        public string GetText()
+        {
+            return this._text;
+        }
+    }
+
     class Server
     {
+        public event OnTextChangedHandler OnTextChangedEvent;
+
         readonly TcpListener ServerSocket = new TcpListener(IPAddress.Any, 9000);
         TcpClient clientSocket = default(TcpClient);
         static List<TcpClient>   clients = new List<TcpClient>();
@@ -21,6 +40,7 @@ namespace WindowsFormsApplication2
         {
             ServerSocket.Start();
             Debug.WriteLine("Listening");
+            if (this.OnTextChangedEvent != null) OnTextChangedEvent(this, new OnTextChanged("Server Started listening...."));
             counter = 0;
             while (true)
             {
@@ -56,6 +76,7 @@ namespace WindowsFormsApplication2
                     networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
                     dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
                     Debug.WriteLine(" >> " + "From client-" + clNo + dataFromClient);
+                    if (this.OnTextChangedEvent != null) OnTextChangedEvent(this, new OnTextChanged("Client " + clNo + " says: " + dataFromClient));
                     Send(dataFromClient, clientSocket);
                 }
                 catch (Exception ex)
